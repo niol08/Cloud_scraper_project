@@ -1,39 +1,38 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+from playwright.sync_api import sync_playwright
 import time
 
-URL = "https://www.appbrain.com/apps/trending/no-ads"
+APPBRAIN_URL = "https://www.appbrain.com/apps/trending/no-ads"
+SCRAPING_DURATION = 300  # seconds
 SCROLL_PAUSE_TIME = 1
-SCRAPING_DURATION = 300  # 5 minutes
+
 
 def scrape_app_names():
-    """Scrape app names from AppBrain and return as a list."""
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=options)
-
-    driver.get(URL)
-    start_time = time.time()
-    last_height = driver.execute_script("return document.body.scrollHeight")
-
     app_names = set()
 
-    while time.time() - start_time < SCRAPING_DURATION:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(SCROLL_PAUSE_TIME)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
 
-        elements = driver.find_elements(By.CSS_SELECTOR, "div.browse-app-large-title")
-        for e in elements:
-            name = e.text.strip()
-            if name:
-                app_names.add(name)
+        print("[STEP 1] Navigating to AppBrain...")
+        page.goto(APPBRAIN_URL)
 
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            break
-        last_height = new_height
+        start_time = time.time()
+        last_height = page.evaluate("document.body.scrollHeight")
 
-    driver.quit()
+        while time.time() - start_time < SCRAPING_DURATION:
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(SCROLL_PAUSE_TIME)
+
+            titles = page.locator("div.browse-app-large-title").all_text_contents()
+            app_names.update([title.strip() for title in titles if title.strip()])
+
+            new_height = page.evaluate("document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+        browser.close()
+
+    print(f"[DONE] Scraped {len(app_names)} app names.")
     return list(app_names)

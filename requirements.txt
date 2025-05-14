@@ -1,5 +1,4 @@
-txt
-selenium
+playwright
 python-dotenv
 supabase
 google-play-scraper
