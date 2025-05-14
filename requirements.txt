@@ -1,0 +1,5 @@
+txt
+selenium
+python-dotenv
+supabase
+google-play-scraper
