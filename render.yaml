@@ -1,0 +1,8 @@
+services:
+  - type: worker
+    name: appbrain-scraper
+    env: python
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    schedule: '0 */6 * * *' # every 6 hours
