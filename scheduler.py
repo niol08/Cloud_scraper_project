@@ -1,14 +1,23 @@
-from appbrain_scraper import scrape_app_names
+import json
+from flask import Flask, jsonify
 from playstore_email_scraper import collect_emails
 
-def main():
-    print("[STEP 1] Scraping AppBrain app names...")
-    app_names = scrape_app_names()
-    print(f"[DONE] Scraped {len(app_names)} app names.")
+app = Flask(__name__)
 
-    print("[STEP 2] Collecting developer emails from Play Store...")
+def load_app_names_from_file(filename="app_names.json"):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        return data["app_names"]
+
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"status": "ok", "message": "Service is running."})
+
+@app.route("/run", methods=["POST"])
+def run_scraper():
+    app_names = load_app_names_from_file()
     emails = collect_emails(app_names)
-    print(f"[DONE] Collected {len(emails)} new emails.")
+    return jsonify({"status": "done", "emails_collected": len(emails)})
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=10000)

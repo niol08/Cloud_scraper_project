@@ -1,5 +1,9 @@
 gitignore
 .env
+*.venv
+*.env
+/venv
+*.DS_Store
 __pycache__/
 *.pyc
 chromedriver.exe
