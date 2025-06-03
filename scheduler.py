@@ -15,9 +15,16 @@ def index():
 
 @app.route("/run", methods=["POST"])
 def run_scraper():
-    app_names = load_app_names_from_file()
-    emails = collect_emails(app_names)
-    return jsonify({"status": "done", "emails_collected": len(emails)})
+    print("Received /run request")
+    try:
+        app_names = load_app_names_from_file()
+        print(f"Loaded {len(app_names)} app names")
+        emails = collect_emails(app_names)
+        print(f"Collected {len(emails)} emails")
+        return jsonify({"status": "done", "emails_collected": len(emails)})
+    except Exception as e:
+        print(f"Error in /run: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
