@@ -29,14 +29,11 @@ def index():
 def run_scraper():
     print("Received /run request")
     try:
-        app_name = pop_next_app_name()
-        if not app_name:
-            print("No more app names to process.")
-            return jsonify({"status": "done", "message": "No more app names to process."})
-        print(f"Processing: {app_name}")
-        emails = collect_emails([app_name])
+        app_names = load_app_names_from_file()
+        print(f"Loaded {len(app_names)} app names")
+        emails = collect_emails(app_names)
         print(f"Collected {len(emails)} emails")
-        return jsonify({"status": "done", "app_name": app_name, "emails_collected": len(emails)})
+        return jsonify({"status": "done", "emails_collected": len(emails)})
     except Exception as e:
         print(f"Error in /run: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
